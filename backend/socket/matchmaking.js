@@ -1,78 +1,116 @@
 const { v4: uuidv4 } = require("uuid");
 
-const WAITING_QUEUE = "codemeet:waiting_queue";
-const ROOM_TTL      = 7200; // 2 hours in seconds
+const QUEUES = {
+  easy:   "codemeet:queue:easy",
+  medium: "codemeet:queue:medium",
+  hard:   "codemeet:queue:hard",
+  random: "codemeet:queue:random",
+};
+const VALID_DIFF = Object.keys(QUEUES);
+const ROOM_TTL   = 7200;
 
-/**
- * Handles matchmaking events for a single socket:
- *   find_match   – join the waiting queue; if someone else is waiting, pair up
- *   cancel_match – leave the waiting queue
- */
+async function fetchElo(socket, pg) {
+  if (!socket?.user?.id || !pg) return 1200;
+  try {
+    const { rows } = await pg.query("SELECT elo FROM users WHERE id = $1", [socket.user.id]);
+    return rows[0]?.elo ?? 1200;
+  } catch {
+    return 1200;
+  }
+}
+
+async function removeFromAllQueues(redis, socketId) {
+  await Promise.all(Object.values(QUEUES).map((q) => redis.lRem(q, 0, socketId)));
+}
+
 module.exports = function setupMatchmaking(socket, io, redis, pg) {
 
   // ── find_match ─────────────────────────────────────────────────────────────
-  socket.on("find_match", async () => {
+  socket.on("find_match", async ({ difficulty = "random", eloRange = 300 } = {}) => {
     try {
-      // Pop the oldest waiting user from the right of the queue
-      const waitingId = await redis.rPop(WAITING_QUEUE);
+      const diff     = VALID_DIFF.includes(difficulty) ? difficulty : "random";
+      const queueKey = QUEUES[diff];
+
+      console.log(
+        `[Matchmaking] find_match: ${socket.id} diff=${diff} eloRange=${eloRange}` +
+        (socket.user ? ` user=${socket.user.display_name}` : " [guest]")
+      );
+
+      const userElo    = await fetchElo(socket, pg);
+      const waitingId  = await redis.rPop(queueKey);
 
       if (waitingId && waitingId !== socket.id) {
-        // Verify the popped socket is still connected (could have dropped)
         const partnerSocket = io.sockets.sockets.get(waitingId);
 
+        // Stale entry — discard partner, put self in queue
         if (!partnerSocket) {
-          // Stale entry — put current user in queue and wait
-          await redis.lPush(WAITING_QUEUE, socket.id);
+          await redis.lPush(queueKey, socket.id);
+          console.log(`[Matchmaking] Stale partner discarded, ${socket.id} queued in ${diff}`);
           return;
         }
 
-        // ── Pair the two users ───────────────────────────────────────────────
+        const partnerElo = await fetchElo(partnerSocket, pg);
+
+        // ELO range check — both guests count as 1200, always within range
+        if (Math.abs(userElo - partnerElo) > eloRange) {
+          // Put partner back at tail (preserve their wait position), self at head
+          await redis.rPush(queueKey, waitingId);
+          await redis.lPush(queueKey, socket.id);
+          console.log(
+            `[Matchmaking] ELO gap too large (${userElo} vs ${partnerElo}), both re-queued in ${diff}`
+          );
+          return;
+        }
+
+        // ── Pair the two users ─────────────────────────────────────────────────
         const roomId = uuidv4();
 
-        // Pick a random problem from the database
-        const { rows } = await pg.query(
-          "SELECT * FROM problems ORDER BY RANDOM() LIMIT 1"
-        );
+        // Pick a problem matching the chosen difficulty
+        const { rows } = diff === "random"
+          ? await pg.query("SELECT * FROM problems ORDER BY RANDOM() LIMIT 1")
+          : await pg.query(
+              "SELECT * FROM problems WHERE LOWER(difficulty) = LOWER($1) ORDER BY RANDOM() LIMIT 1",
+              [diff]
+            );
+
+        if (!rows.length) {
+          // No problems for this difficulty — fail gracefully, restore partner
+          console.error(`[Matchmaking] No problems found for difficulty: ${diff}`);
+          await redis.rPush(queueKey, waitingId);
+          socket.emit("match_error", { message: `No problems available for ${diff} difficulty.` });
+          return;
+        }
+
         const problem = rows[0];
 
-        // Persist room metadata in Redis (expires with the session)
         await redis.setEx(
           `room:${roomId}`,
           ROOM_TTL,
-          JSON.stringify({ users: [socket.id, waitingId], problemId: problem.id })
+          JSON.stringify({ users: [socket.id, waitingId], problemId: problem.id, difficulty: diff })
         );
-
-        // Track which room each socket belongs to (used during disconnect cleanup)
         await redis.setEx(`socket:${socket.id}`, ROOM_TTL, roomId);
         await redis.setEx(`socket:${waitingId}`,  ROOM_TTL, roomId);
 
-        // Join both sockets into the Socket.io room for easy broadcast
         socket.join(roomId);
         partnerSocket.join(roomId);
 
-        // Notify both users — each gets the other's ID as opponentId
-        socket.emit("match_found", {
-          roomId,
-          problem,
-          opponentId: waitingId,
-        });
-        partnerSocket.emit("match_found", {
-          roomId,
-          problem,
-          opponentId: socket.id,
-        });
+        socket.emit("match_found",      { roomId, problem, opponentId: waitingId });
+        partnerSocket.emit("match_found", { roomId, problem, opponentId: socket.id });
 
-        console.log(`[Matchmaking] Paired ${socket.id} ↔ ${waitingId} in room ${roomId}`);
+        console.log(
+          `[Matchmaking] Paired ${socket.id} (ELO:${userElo}) ↔ ${waitingId} (ELO:${partnerElo})` +
+          ` | diff:${diff} | room:${roomId.slice(0, 8)}`
+        );
 
       } else {
-        // Nobody waiting — add this user to the back of the queue
+        // Nobody waiting (or popped ourselves back) — join the queue
         if (waitingId === socket.id) {
-          // Edge case: we popped ourselves somehow; just re-add
-          await redis.lPush(WAITING_QUEUE, socket.id);
+          // edge case: popped self — just re-push
+          await redis.lPush(queueKey, socket.id);
         } else {
-          await redis.lPush(WAITING_QUEUE, socket.id);
+          await redis.lPush(queueKey, socket.id);
         }
-        console.log(`[Matchmaking] ${socket.id} added to queue`);
+        console.log(`[Matchmaking] ${socket.id} added to ${diff} queue`);
       }
 
     } catch (err) {
@@ -84,17 +122,17 @@ module.exports = function setupMatchmaking(socket, io, redis, pg) {
   // ── cancel_match ───────────────────────────────────────────────────────────
   socket.on("cancel_match", async () => {
     try {
-      await redis.lRem(WAITING_QUEUE, 0, socket.id);
-      console.log(`[Matchmaking] ${socket.id} left the queue`);
+      await removeFromAllQueues(redis, socket.id);
+      console.log(`[Matchmaking] ${socket.id} cancelled`);
     } catch (err) {
       console.error("[Matchmaking] cancel_match error:", err);
     }
   });
 
-  // ── Clean up queue on disconnect (user closed tab while waiting) ───────────
+  // ── disconnect — clean up all queues ───────────────────────────────────────
   socket.on("disconnect", async () => {
     try {
-      await redis.lRem(WAITING_QUEUE, 0, socket.id);
+      await removeFromAllQueues(redis, socket.id);
     } catch (err) {
       console.error("[Matchmaking] disconnect cleanup error:", err);
     }

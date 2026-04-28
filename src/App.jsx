@@ -3,6 +3,7 @@ import Landing          from "./Landing";
 import WaitingRoom      from "./WaitingRoom";
 import EditorRoom       from "./EditorRoom";
 import ProblemsPage     from "./ProblemsPage";
+import LeaderboardPage  from "./LeaderboardPage";
 import LoginPromptModal from "./LoginPromptModal";
 import { useAuth }      from "./context/AuthContext";
 import "./global.css";
@@ -20,9 +21,10 @@ function incrementGuestMatches() {
 }
 
 export default function App() {
-  const [screen, setScreen]           = useState("landing");
-  const [matchData, setMatchData]     = useState(null);
+  const [screen, setScreen]                   = useState("landing");
+  const [matchData, setMatchData]             = useState(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const prevScreen = useRef("landing"); // so leaderboard can go back to right place
   const socketRef = useRef(null);
   const { login, user } = useAuth();
 
@@ -83,12 +85,18 @@ export default function App() {
     }
   }
 
+  function goToLeaderboard() {
+    prevScreen.current = screen;
+    setScreen("leaderboard");
+  }
+
   return (
     <div className="app-root">
       {screen === "landing" && (
         <Landing
           onFindMatch={handleFindMatch}
           onProblems={() => setScreen("problems")}
+          onLeaderboard={goToLeaderboard}
         />
       )}
 
@@ -96,6 +104,14 @@ export default function App() {
         <ProblemsPage
           onFindMatch={handleFindMatch}
           onBack={() => setScreen("landing")}
+          onLeaderboard={goToLeaderboard}
+        />
+      )}
+
+      {screen === "leaderboard" && (
+        <LeaderboardPage
+          onBack={() => setScreen(prevScreen.current === "editor" ? "landing" : (prevScreen.current || "landing"))}
+          onFindMatch={handleFindMatch}
         />
       )}
 
@@ -110,6 +126,7 @@ export default function App() {
         <EditorRoom
           matchData={matchData}
           onLeave={handleLeave}
+          onLeaderboard={goToLeaderboard}
         />
       )}
 

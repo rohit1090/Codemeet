@@ -1,0 +1,179 @@
+.lb-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  position: relative;
+}
+
+.lb-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  position: relative;
+}
+
+/* Header */
+.lb-header { margin-bottom: 1.75rem; }
+.lb-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.4rem;
+}
+.lb-sub {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Your Rank card */
+.lb-your-rank {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.lb-yr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-border);
+  flex-shrink: 0;
+}
+.lb-yr-info { flex: 1; }
+.lb-yr-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.lb-yr-rank {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  margin-top: 2px;
+}
+.lb-yr-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lb-yr-elo {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* ELO pill */
+.elo-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  white-space: nowrap;
+}
+
+/* Table */
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.lb-table thead th {
+  text-align: left;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-body);
+}
+.lb-table thead th:first-child { width: 56px; }
+
+.lb-row {
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+}
+.lb-row:hover { background: var(--bg-surface); }
+.lb-row-me {
+  background: rgba(99,179,116,0.05) !important;
+  border-left-color: var(--accent) !important;
+}
+.lb-table td { padding: 0.85rem 1rem; }
+
+/* Rank cell */
+.lb-rank-cell { width: 56px; }
+.lb-medal     { font-size: 20px; }
+.lb-rank-num  { font-family: var(--font-code); font-size: 13px; color: var(--text-muted); }
+
+/* Player cell */
+.lb-player-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.85rem 1rem;
+}
+.lb-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.lb-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lb-you-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-family: var(--font-code);
+}
+
+/* ELO number */
+.lb-elo-cell { white-space: nowrap; }
+.lb-elo-num {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Stats */
+.lb-stat {
+  font-family: var(--font-code);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.lb-wr       { font-weight: 700; color: var(--text-muted); }
+.lb-wr.good  { color: var(--accent); }
+
+/* Status */
+.lb-status {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+.lb-error { color: #e07070; }

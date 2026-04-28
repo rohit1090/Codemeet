@@ -29,7 +29,7 @@ const FEATURES = [
   },
 ];
 
-export default function Landing({ onFindMatch, onProblems }) {
+export default function Landing({ onFindMatch, onProblems, onLeaderboard }) {
   const { user, logout } = useAuth();
 
   return (
@@ -42,6 +42,7 @@ export default function Landing({ onFindMatch, onProblems }) {
         <div className="land-nav-links">
           <a href="#features">Features</a>
           <a href="#" onClick={(e) => { e.preventDefault(); onProblems(); }}>Problems</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); onLeaderboard(); }}>Leaderboard</a>
           {user ? (
             <div className="nav-user">
               {user.avatar_url && (

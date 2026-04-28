@@ -154,6 +154,13 @@
   transition: background 0.2s;
 }
 .mr-btn:hover { background: #7dcf8e; }
+.mr-btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-mid);
+  margin-top: -0.25rem;
+}
+.mr-btn-secondary:hover { background: var(--bg-surface); color: var(--text-primary); }
 .mr-dismiss {
   background: transparent;
   border: none;

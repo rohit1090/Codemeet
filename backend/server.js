@@ -134,11 +134,16 @@ io.on("connection", (socket) => {
   });
 });
 
-// ── Broadcast live queue size every 3 seconds ─────────────────────────────────
+// ── Broadcast per-difficulty queue sizes every 3 seconds ─────────────────────
 setInterval(async () => {
   try {
-    const count = await redis.lLen("codemeet:waiting_queue");
-    io.emit("queue_update", { count });
+    const [easy, medium, hard, random] = await Promise.all([
+      redis.lLen("codemeet:queue:easy"),
+      redis.lLen("codemeet:queue:medium"),
+      redis.lLen("codemeet:queue:hard"),
+      redis.lLen("codemeet:queue:random"),
+    ]);
+    io.emit("queue_update", { easy, medium, hard, random });
   } catch (err) {
     console.error("[Queue broadcast] Error:", err);
   }

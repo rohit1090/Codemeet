@@ -7,7 +7,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000"
 
 const DIFF_ORDER = { Easy: 0, Medium: 1, Hard: 2 };
 
-export default function ProblemsPage({ onFindMatch, onBack }) {
+export default function ProblemsPage({ onFindMatch, onBack, onLeaderboard }) {
   const { user, logout } = useAuth();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -36,6 +36,7 @@ export default function ProblemsPage({ onFindMatch, onBack }) {
         <div className="land-nav-links">
           <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>Home</a>
           <a href="#" className="nav-active">Problems</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); onLeaderboard?.(); }}>Leaderboard</a>
           {user ? (
             <div className="nav-user">
               {user.avatar_url && (

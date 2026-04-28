@@ -35,7 +35,7 @@ function fromBase64(b64) {
   return decodeURIComponent(escape(atob(b64)));
 }
 
-export default function EditorRoom({ matchData, onLeave }) {
+export default function EditorRoom({ matchData, onLeave, onLeaderboard }) {
   const { roomId, problem, socket } = matchData;
   const { user, updateElo } = useAuth();
 
@@ -297,6 +297,11 @@ export default function EditorRoom({ matchData, onLeave }) {
               </div>
             )}
             <button className="mr-btn" onClick={onLeave}>Find New Match</button>
+            {onLeaderboard && (
+              <button className="mr-btn mr-btn-secondary" onClick={onLeaderboard}>
+                View Leaderboard
+              </button>
+            )}
             <button className="mr-dismiss" onClick={() => setMatchResult(null)}>Keep Coding</button>
           </div>
         </div>

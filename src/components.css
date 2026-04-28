@@ -1,3 +1,91 @@
+/* ── Difficulty Select ── */
+.diff-select-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.diff-select-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  position: relative;
+  max-width: 860px;
+  width: 100%;
+}
+.diff-select-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.diff-select-sub {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.diff-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .diff-cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.diff-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--dc-bg, var(--bg-surface));
+  border: 1px solid var(--dc-border, var(--border));
+  border-radius: 14px;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-family: var(--font-ui);
+}
+.diff-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border-color: var(--dc-color, var(--accent));
+}
+.dc-emoji  { font-size: 28px; }
+.dc-label  { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--dc-color, var(--accent)); }
+.dc-desc   { font-size: 12px; color: var(--text-muted); line-height: 1.5; font-family: var(--font-body); }
+.dc-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 4px; }
+.dc-queue  { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); font-family: var(--font-code); }
+.dc-avg    { font-size: 11px; color: var(--text-muted); font-family: var(--font-code); }
+.dc-live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dc-color, var(--accent));
+  animation: blink-dot 2s infinite;
+}
+
+.diff-inline-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+.wait-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ── WaitingRoom ── */
 .wait-page {
   min-height: 100vh;

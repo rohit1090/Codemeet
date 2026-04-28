@@ -1,0 +1,122 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CodeMeet Docker Compose
+#
+# Profiles
+#   (none / default)  – full local dev stack including Judge0
+#   prod              – backend + postgres + redis only (Judge0 is hosted separately)
+#
+# Usage:
+#   Local dev (everything):   docker-compose up --build
+#   App only (no Judge0):     docker-compose up backend postgres redis
+#   Production-like (no J0):  docker-compose --profile prod up --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── CodeMeet backend ────────────────────────────────────────────────────────
+  backend:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      NODE_ENV: development
+      DATABASE_URL: postgresql://codemeet:codemeet@postgres:5432/codemeet
+      REDIS_URL: redis://redis:6379
+      JUDGE0_URL: http://judge0-server:2358
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - codemeet-net
+    restart: unless-stopped
+    profiles: ["", "prod"]   # included in both default and prod
+
+  # ── App PostgreSQL ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: codemeet
+      POSTGRES_USER: codemeet
+      POSTGRES_PASSWORD: codemeet
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - codemeet-net
+    restart: unless-stopped
+    profiles: ["", "prod"]
+
+  # ── App Redis ───────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - codemeet-net
+    restart: unless-stopped
+    profiles: ["", "prod"]
+
+  # ── Judge0 server — local dev only (not included in prod profile) ────────────
+  judge0-server:
+    image: judge0/judge0:1.13.0
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    networks:
+      - codemeet-net
+    restart: always
+    profiles: [""]   # default profile only
+
+  judge0-worker:
+    image: judge0/judge0:1.13.0
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    networks:
+      - codemeet-net
+    restart: always
+    profiles: [""]
+
+  judge0-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0passwd
+    volumes:
+      - judge0-db-data:/var/lib/postgresql/data
+    networks:
+      - codemeet-net
+    restart: unless-stopped
+    profiles: [""]
+
+  judge0-redis:
+    image: redis:7-alpine
+    networks:
+      - codemeet-net
+    restart: unless-stopped
+    profiles: [""]
+
+volumes:
+  postgres-data:
+  judge0-db-data:
+
+networks:
+  codemeet-net:
+    driver: bridge

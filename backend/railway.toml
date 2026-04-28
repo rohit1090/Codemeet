@@ -1,0 +1,15 @@
+[build]
+# Railway builds using the Dockerfile in this directory
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Service display name in the Railway dashboard
+numReplicas = 1
+sleepApplication = false
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+# Railway uses this path to confirm the service came up healthy
+healthcheckPath = "/health"
+healthcheckTimeout = 30

@@ -1,0 +1,180 @@
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+/* Top bar */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 1rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.editor-logo {
+  font-family: var(--font-code);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.topbar-center { display: flex; align-items: center; }
+.match-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: var(--font-code);
+}
+.match-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink-dot 2s infinite;
+}
+@keyframes blink-dot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-select {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--font-code);
+  cursor: pointer;
+  outline: none;
+}
+.btn-run {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-run:hover:not(:disabled) { background: rgba(99,179,116,.25); }
+.btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit {
+  background: var(--accent);
+  color: var(--bg-base);
+  border: none;
+  padding: 5px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-submit:hover:not(:disabled) { background: #7dcf8e; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-leave {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-leave:hover { color: var(--danger); border-color: var(--danger); }
+
+/* 3-panel body */
+.editor-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left panel */
+.panel-left {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-tab {
+  flex: 1;
+  padding: 10px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.panel-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Editor middle */
+.panel-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+.editor-users-bar {
+  display: flex;
+  gap: 12px;
+  padding: 6px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.user-tag {
+  font-size: 11px;
+  font-family: var(--font-code);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.user-tag.you    { color: var(--accent);   background: var(--accent-dim); }
+.user-tag.partner { color: var(--partner); background: var(--partner-dim); }
+.monaco-wrapper { flex: 1; overflow: hidden; }
+
+/* Right panel */
+.panel-right {
+  width: 240px;
+  min-width: 240px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

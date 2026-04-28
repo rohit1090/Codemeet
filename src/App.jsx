@@ -1,15 +1,30 @@
 import { useRef, useState, useEffect } from "react";
-import Landing      from "./Landing";
-import WaitingRoom  from "./WaitingRoom";
-import EditorRoom   from "./EditorRoom";
-import ProblemsPage from "./ProblemsPage";
-import { useAuth }  from "./context/AuthContext";
+import Landing          from "./Landing";
+import WaitingRoom      from "./WaitingRoom";
+import EditorRoom       from "./EditorRoom";
+import ProblemsPage     from "./ProblemsPage";
+import LoginPromptModal from "./LoginPromptModal";
+import { useAuth }      from "./context/AuthContext";
 import "./global.css";
 
+const GUEST_MATCH_KEY  = "codemeet_guest_matches";
+const GUEST_MATCH_LIMIT = 5;
+
+function getGuestMatches() {
+  return parseInt(localStorage.getItem(GUEST_MATCH_KEY) || "0", 10);
+}
+function incrementGuestMatches() {
+  const next = getGuestMatches() + 1;
+  localStorage.setItem(GUEST_MATCH_KEY, String(next));
+  return next;
+}
+
 export default function App() {
-  const [screen, setScreen]       = useState("landing"); // "landing" | "problems" | "waiting" | "editor"
-  const [matchData, setMatchData] = useState(null);
-  const { login } = useAuth();
+  const [screen, setScreen]           = useState("landing");
+  const [matchData, setMatchData]     = useState(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const socketRef = useRef(null);
+  const { login, user } = useAuth();
 
   // Handle Google OAuth callback: /auth/callback?token=...
   useEffect(() => {
@@ -19,33 +34,53 @@ export default function App() {
       if (token) {
         login(token);
       }
-      // Clean URL without reload
       window.history.replaceState({}, "", "/");
     }
   }, [login]);
 
-  // Keep a ref to the active socket so we can disconnect it from any screen
-  const socketRef = useRef(null);
-
   function handleFindMatch() {
+    // Logged-in users always allowed
+    if (user) {
+      setScreen("waiting");
+      return;
+    }
+
+    // Guest: check usage limit
+    if (getGuestMatches() >= GUEST_MATCH_LIMIT) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     setScreen("waiting");
   }
 
   function handleMatchFound(data) {
-    // data = { roomId, problem, opponentId, socket }
     socketRef.current = data.socket;
     setMatchData(data);
     setScreen("editor");
+
+    // Count this match for guest users
+    if (!user) {
+      const used = incrementGuestMatches();
+      // Pre-emptively show the modal after leaving if they've hit the limit
+      if (used >= GUEST_MATCH_LIMIT) {
+        // will show next time they click Find a Match
+      }
+    }
   }
 
   function handleLeave() {
-    // Always close the socket before returning to landing
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
     setMatchData(null);
     setScreen("landing");
+
+    // Show login prompt immediately after the session ends if limit reached
+    if (!user && getGuestMatches() >= GUEST_MATCH_LIMIT) {
+      setShowLoginPrompt(true);
+    }
   }
 
   return (
@@ -75,6 +110,13 @@ export default function App() {
         <EditorRoom
           matchData={matchData}
           onLeave={handleLeave}
+        />
+      )}
+
+      {showLoginPrompt && (
+        <LoginPromptModal
+          matchesUsed={GUEST_MATCH_LIMIT}
+          onClose={() => setShowLoginPrompt(false)}
         />
       )}
     </div>

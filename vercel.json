@@ -1,16 +1,12 @@
 {
   "version": 2,
-  "name": "codemeet",
+  "name": "codemeet-app",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "framework": "create-react-app",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "env": {
-    "REACT_APP_BACKEND_URL": "@codemeet_backend_url",
-    "REACT_APP_JUDGE0_URL":  "@codemeet_judge0_url"
-  },
   "headers": [
     {
       "source": "/(.*)",

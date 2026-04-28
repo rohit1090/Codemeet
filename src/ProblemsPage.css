@@ -1,0 +1,107 @@
+.prob-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  position: relative;
+}
+
+.prob-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  position: relative;
+}
+
+.prob-header {
+  margin-bottom: 2rem;
+}
+.prob-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.prob-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.prob-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.filter-btn {
+  padding: 6px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--accent-border); color: var(--text-primary); }
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+.prob-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.prob-table thead th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.prob-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.prob-table tbody tr:hover { background: var(--bg-surface); }
+.prob-table td {
+  padding: 1rem;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.prob-num { color: var(--text-muted); width: 48px; }
+.prob-title { font-weight: 500; }
+
+.diff-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-code);
+}
+.diff-easy   { background: rgba(99,179,116,0.12); color: #63b374; }
+.diff-medium { background: rgba(230,180,80,0.12);  color: #e6b450; }
+.diff-hard   { background: rgba(220,80,80,0.12);   color: #dc5050; }
+
+.solve-btn {
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-secondary);
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.solve-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.prob-status {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.prob-error { color: #dc5050; }
+
+.nav-active { color: var(--text-primary) !important; font-weight: 600; }

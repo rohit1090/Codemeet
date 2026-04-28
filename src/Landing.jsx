@@ -26,7 +26,7 @@ const FEATURES = [
   },
 ];
 
-export default function Landing({ onFindMatch }) {
+export default function Landing({ onFindMatch, onProblems }) {
   return (
     <div className="land-page">
       <div className="land-grid-bg" />
@@ -36,7 +36,7 @@ export default function Landing({ onFindMatch }) {
         <span className="land-nav-logo">CodeMeet</span>
         <div className="land-nav-links">
           <a href="#features">Features</a>
-          <a href="#problems">Problems</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); onProblems(); }}>Problems</a>
           <button className="nav-btn-ghost">Log in</button>
           <button className="nav-btn-solid" onClick={onFindMatch}>
             Start Coding

@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import Landing    from "./Landing";
-import WaitingRoom from "./WaitingRoom";
-import EditorRoom  from "./EditorRoom";
+import Landing      from "./Landing";
+import WaitingRoom  from "./WaitingRoom";
+import EditorRoom   from "./EditorRoom";
+import ProblemsPage from "./ProblemsPage";
 import "./global.css";
 
 export default function App() {
-  const [screen, setScreen]       = useState("landing"); // "landing" | "waiting" | "editor"
+  const [screen, setScreen]       = useState("landing"); // "landing" | "problems" | "waiting" | "editor"
   const [matchData, setMatchData] = useState(null);
 
   // Keep a ref to the active socket so we can disconnect it from any screen
@@ -35,7 +36,17 @@ export default function App() {
   return (
     <div className="app-root">
       {screen === "landing" && (
-        <Landing onFindMatch={handleFindMatch} />
+        <Landing
+          onFindMatch={handleFindMatch}
+          onProblems={() => setScreen("problems")}
+        />
+      )}
+
+      {screen === "problems" && (
+        <ProblemsPage
+          onFindMatch={handleFindMatch}
+          onBack={() => setScreen("landing")}
+        />
       )}
 
       {screen === "waiting" && (

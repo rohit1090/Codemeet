@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bg-base:      #0d0f14;
@@ -19,8 +19,10 @@
   --partner-dim:    rgba(127, 168, 224, 0.12);
 
   --danger: #e07070;
-  --font-code: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-ui:   'Syne', sans-serif;
+  --font-code:    'JetBrains Mono', 'Fira Code', monospace;
+  --font-ui:      'Manrope', 'Inter', sans-serif;
+  --font-display: 'Manrope', sans-serif;
+  --font-body:    'Inter', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -30,11 +30,11 @@
   z-index: 10;
 }
 .land-nav-logo {
-  font-family: var(--font-code);
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
   color: var(--accent);
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 .land-nav-links {
   display: flex;
@@ -42,7 +42,9 @@
   gap: 1.5rem;
 }
 .land-nav-links a {
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.2s;
@@ -54,8 +56,9 @@
   color: var(--text-secondary);
   padding: 6px 16px;
   border-radius: 6px;
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -66,7 +69,7 @@
   color: var(--bg-base);
   padding: 6px 18px;
   border-radius: 6px;
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -95,15 +98,19 @@
   margin-bottom: 1.5rem;
 }
 .land-title {
-  font-size: 56px;
+  font-family: var(--font-display);
+  font-size: 58px;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.08;
   margin-bottom: 1.25rem;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 .land-title-accent { color: var(--accent); }
 .land-subtitle {
+  font-family: var(--font-body);
   font-size: 16px;
+  font-weight: 400;
   color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 2.5rem;
@@ -119,11 +126,12 @@
   border: none;
   padding: 14px 32px;
   border-radius: 8px;
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  letter-spacing: 0.01em;
 }
 .cta-primary:hover { background: #7dcf8e; transform: translateY(-1px); }
 .cta-secondary {
@@ -132,8 +140,9 @@
   border: 1px solid var(--border-mid);
   padding: 14px 32px;
   border-radius: 8px;
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -148,9 +157,10 @@
 .stat-num {
   display: block;
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent);
-  font-family: var(--font-code);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 .stat-label {
   display: block;
@@ -177,8 +187,8 @@
 }
 .feature-card:hover { border-color: var(--accent-border); }
 .feature-icon { font-size: 24px; display: block; margin-bottom: 0.75rem; }
-.feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary); }
-.feature-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+.feature-card h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); }
+.feature-card p { font-family: var(--font-body); font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
 
 /* Auth nav elements */
 .nav-user {

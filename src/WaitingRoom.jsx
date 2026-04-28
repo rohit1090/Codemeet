@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import { useAuth } from "./context/AuthContext";
 import "./components.css";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";
 
 export default function WaitingRoom({ onMatchFound, onCancel }) {
+  const { getToken } = useAuth();
   const socketRef  = useRef(null);
   const matchedRef = useRef(false); // prevents socket disconnect if match fired first
 
@@ -25,6 +27,7 @@ export default function WaitingRoom({ onMatchFound, onCancel }) {
       allowEIO3: true,
       reconnectionAttempts: 3,
       reconnectionDelay: 1500,
+      auth: { token: getToken() || "" },
     });
     socketRef.current = socket;
 

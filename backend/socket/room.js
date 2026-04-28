@@ -1,15 +1,14 @@
-/**
- * Handles in-room Socket.io events for a single socket:
- *   code_change     – sync editor content to partner
- *   language_change – sync language selection to partner
- *   send_message    – relay chat message to partner
- *   disconnect      – notify partner and clean up Redis room state
- */
-module.exports = function setupRoom(socket, io, redis) {
+const jwt = require("jsonwebtoken");
+
+function calcEloChange(playerElo, opponentElo, result, K = 30) {
+  const expected = 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
+  const actual   = result === "win" ? 1 : result === "loss" ? 0 : 0.5;
+  return Math.round(K * (actual - expected));
+}
+
+module.exports = function setupRoom(socket, io, redis, pg) {
 
   // ── code_change ────────────────────────────────────────────────────────────
-  // Broadcast the updated code to everyone in the room except the sender.
-  // The frontend preserves cursor position on the receiving end.
   socket.on("code_change", ({ roomId, code }) => {
     try {
       socket.to(roomId).emit("code_update", { code });
@@ -30,23 +29,117 @@ module.exports = function setupRoom(socket, io, redis) {
   // ── send_message ───────────────────────────────────────────────────────────
   socket.on("send_message", ({ roomId, text }) => {
     try {
-      socket.to(roomId).emit("receive_message", {
-        text,
-        senderId: socket.id,
-      });
+      socket.to(roomId).emit("receive_message", { text, senderId: socket.id });
     } catch (err) {
       console.error("[Room] send_message error:", err);
+    }
+  });
+
+  // ── submit_result ──────────────────────────────────────────────────────────
+  // Fired by the frontend after Judge0 returns all-pass for a submission.
+  // First correct submission in a room = winner. ELO updated only when both
+  // sockets are authenticated users.
+  socket.on("submit_result", async ({ roomId, passed, durationSeconds }) => {
+    try {
+      const submitKey = `submitted:${roomId}`;
+
+      const raw   = await redis.get(submitKey);
+      const state = raw ? JSON.parse(raw) : { resolved: false, results: {} };
+
+      if (state.resolved) return; // already processed this room
+
+      state.results[socket.id] = passed;
+
+      if (!passed) {
+        await redis.setEx(submitKey, 7200, JSON.stringify(state));
+        return;
+      }
+
+      // ── First correct submission ─────────────────────────────────────────
+      state.resolved = true;
+      await redis.setEx(submitKey, 7200, JSON.stringify(state));
+
+      // Resolve partner socket
+      const roomRaw = await redis.get(`room:${roomId}`);
+      if (!roomRaw) return;
+      const { users, problemId } = JSON.parse(roomRaw);
+      const partnerSocketId = users.find((id) => id !== socket.id);
+      const partnerSocket   = io.sockets.sockets.get(partnerSocketId);
+
+      const winnerUser = socket.user       || null;
+      const loserUser  = partnerSocket?.user || null;
+
+      let winnerChange = null, loserChange = null;
+      let winnerNewElo = null, loserNewElo = null;
+
+      // ── ELO + match_history (only if both users are authenticated) ────────
+      if (winnerUser?.id && loserUser?.id && pg) {
+        const [{ rows: wRows }, { rows: lRows }] = await Promise.all([
+          pg.query("SELECT elo FROM users WHERE id = $1", [winnerUser.id]),
+          pg.query("SELECT elo FROM users WHERE id = $1", [loserUser.id]),
+        ]);
+
+        const winnerElo = wRows[0]?.elo ?? 1200;
+        const loserElo  = lRows[0]?.elo ?? 1200;
+
+        winnerChange = calcEloChange(winnerElo, loserElo, "win");
+        loserChange  = calcEloChange(loserElo, winnerElo, "loss");
+        winnerNewElo = winnerElo + winnerChange;
+        loserNewElo  = loserElo  + loserChange;
+
+        await Promise.all([
+          pg.query(
+            "UPDATE users SET elo = $1, wins = wins + 1 WHERE id = $2",
+            [winnerNewElo, winnerUser.id]
+          ),
+          pg.query(
+            "UPDATE users SET elo = $1, losses = losses + 1 WHERE id = $2",
+            [loserNewElo, loserUser.id]
+          ),
+          pg.query(
+            `INSERT INTO match_history (user_id, partner_id, problem_id, result, elo_change, duration_seconds)
+             VALUES ($1,$2,$3,'win',$4,$5)`,
+            [winnerUser.id, loserUser.id, problemId, winnerChange, durationSeconds ?? null]
+          ),
+          pg.query(
+            `INSERT INTO match_history (user_id, partner_id, problem_id, result, elo_change, duration_seconds)
+             VALUES ($1,$2,$3,'loss',$4,$5)`,
+            [loserUser.id, winnerUser.id, problemId, loserChange, durationSeconds ?? null]
+          ),
+        ]);
+
+        console.log(
+          `[Room] ELO updated — winner ${winnerUser.id}: ${winnerElo}→${winnerNewElo} ` +
+          `(${winnerChange >= 0 ? "+" : ""}${winnerChange})`
+        );
+      }
+
+      // ── Emit match_result to both sockets ─────────────────────────────────
+      socket.emit("match_result", {
+        result:    "win",
+        eloChange: winnerChange,
+        newElo:    winnerNewElo,
+      });
+
+      if (partnerSocket) {
+        partnerSocket.emit("match_result", {
+          result:    "loss",
+          eloChange: loserChange,
+          newElo:    loserNewElo,
+        });
+      }
+
+    } catch (err) {
+      console.error("[Room] submit_result error:", err);
     }
   });
 
   // ── disconnect ─────────────────────────────────────────────────────────────
   socket.on("disconnect", async () => {
     try {
-      // Look up which room this socket was in
       const roomId = await redis.get(`socket:${socket.id}`);
-      if (!roomId) return; // Was in the waiting queue, not a room — matchmaking.js handles that
+      if (!roomId) return;
 
-      // Find the partner and notify them
       const raw = await redis.get(`room:${roomId}`);
       if (raw) {
         const { users } = JSON.parse(raw);
@@ -56,7 +149,6 @@ module.exports = function setupRoom(socket, io, redis) {
           io.to(partnerId).emit("partner_left", {
             message: "Your partner has disconnected.",
           });
-          // Remove the partner's room pointer so their next disconnect is a no-op
           await redis.del(`socket:${partnerId}`);
         }
 
@@ -64,7 +156,6 @@ module.exports = function setupRoom(socket, io, redis) {
       }
 
       await redis.del(`socket:${socket.id}`);
-
       console.log(`[Room] Cleaned up room ${roomId} after ${socket.id} disconnected`);
     } catch (err) {
       console.error("[Room] disconnect cleanup error:", err);

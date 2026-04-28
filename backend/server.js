@@ -9,11 +9,14 @@ const passport        = require("passport");
 const { createClient } = require("redis");
 const { Pool }        = require("pg");
 
-const problemsRouter   = require("./routes/problems");
-const authRouter       = require("./routes/auth");
-const setupPassport    = require("./config/passport");
-const setupMatchmaking = require("./socket/matchmaking");
-const setupRoom        = require("./socket/room");
+const problemsRouter    = require("./routes/problems");
+const authRouter        = require("./routes/auth");
+const leaderboardRouter = require("./routes/leaderboard");
+const usersRouter       = require("./routes/users");
+const setupPassport     = require("./config/passport");
+const setupMatchmaking  = require("./socket/matchmaking");
+const setupRoom         = require("./socket/room");
+const jwt               = require("jsonwebtoken");
 
 const app    = express();
 const server = http.createServer(app);
@@ -87,7 +90,9 @@ const pg = new Pool({
 });
 
 // ── REST routes ───────────────────────────────────────────────────────────────
-app.use("/api/problems", problemsRouter(pg));
+app.use("/api/problems",    problemsRouter(pg));
+app.use("/api/leaderboard", leaderboardRouter(pg));
+app.use("/api/users",       usersRouter(pg));
 app.use("/auth", authRouter);
 
 // Health check — Railway polls this to confirm the service is up
@@ -100,12 +105,29 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// ── Socket.io auth middleware — attach user to socket if JWT present ──────────
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (token) {
+    try {
+      socket.user = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "dev-jwt-secret-change-in-prod"
+      );
+    } catch { /* guest — socket.user stays undefined */ }
+  }
+  next();
+});
+
 // ── Socket.io connections ─────────────────────────────────────────────────────
 io.on("connection", (socket) => {
-  console.log(`[Socket] Connected: ${socket.id} (transport: ${socket.conn.transport.name})`);
+  console.log(
+    `[Socket] Connected: ${socket.id} (transport: ${socket.conn.transport.name})` +
+    (socket.user ? ` user: ${socket.user.display_name}` : " [guest]")
+  );
 
   setupMatchmaking(socket, io, redis, pg);
-  setupRoom(socket, io, redis);
+  setupRoom(socket, io, redis, pg);
 
   socket.on("disconnect", (reason) => {
     console.log(`[Socket] Disconnected: ${socket.id} — ${reason}`);

@@ -45,8 +45,12 @@ export function AuthProvider({ children }) {
     return localStorage.getItem(TOKEN_KEY);
   }
 
+  function updateElo(newElo) {
+    setUser((prev) => prev ? { ...prev, elo: newElo } : prev);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, getToken }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, getToken, updateElo }}>
       {children}
     </AuthContext.Provider>
   );

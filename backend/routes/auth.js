@@ -34,6 +34,9 @@ router.get(
         email:        user.email,
         display_name: user.display_name,
         avatar_url:   user.avatar_url,
+        elo:          user.elo ?? 1200,
+        wins:         user.wins ?? 0,
+        losses:       user.losses ?? 0,
       },
       jwtSecret(),
       { expiresIn: "7d" }

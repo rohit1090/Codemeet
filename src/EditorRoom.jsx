@@ -4,6 +4,7 @@ import ProblemPanel  from "./ProblemPanel";
 import ChatPanel     from "./ChatPanel";
 import ResultPanel   from "./ResultPanel";
 import { useCodeSync } from "./hooks/useCodeSync";
+import { useAuth } from "./context/AuthContext";
 import "./EditorRoom.css";
 
 // Judge0 language IDs — https://ce.judge0.com/languages/
@@ -36,8 +37,8 @@ function fromBase64(b64) {
 
 export default function EditorRoom({ matchData, onLeave }) {
   const { roomId, problem, socket } = matchData;
+  const { user, updateElo } = useAuth();
 
-  // Starter code: prefer DB template, fall back to our hardcoded fallback
   const getStarterCode = useCallback(
     (lang) => problem?.starter_code?.[lang.value] || FALLBACK_CODE[lang.value],
     [problem]
@@ -50,10 +51,14 @@ export default function EditorRoom({ matchData, onLeave }) {
   const [results,      setResults]      = useState(null);
   const [activeTab,    setActiveTab]    = useState("problem");
   const [partnerLeft,  setPartnerLeft]  = useState(false);
+  const [matchResult,  setMatchResult]  = useState(null); // { result, eloChange, newElo }
+  const [eloDisplay,   setEloDisplay]   = useState(user?.elo ?? 1200);
+  const [eloAnim,      setEloAnim]      = useState(null);  // { change: +18 }
 
-  const editorRef = useRef(null);
+  const editorRef    = useRef(null);
+  const sessionStart = useRef(Date.now());
 
-  // ── partner_left ────────────────────────────────────────────────────────────
+  // ── partner_left + match_result ─────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
@@ -62,8 +67,23 @@ export default function EditorRoom({ matchData, onLeave }) {
       setPartnerLeft(true);
     });
 
-    return () => socket.off("partner_left");
-  }, [socket]);
+    socket.on("match_result", ({ result, eloChange, newElo }) => {
+      console.log("[EditorRoom] match_result:", { result, eloChange, newElo });
+      setMatchResult({ result, eloChange, newElo });
+
+      if (eloChange !== null && newElo !== null) {
+        setEloDisplay(newElo);
+        setEloAnim({ change: eloChange });
+        updateElo(newElo);
+        setTimeout(() => setEloAnim(null), 3000);
+      }
+    });
+
+    return () => {
+      socket.off("partner_left");
+      socket.off("match_result");
+    };
+  }, [socket, updateElo]);
 
   // ── Language change coming from partner via useCodeSync ──────────────────────
   const handleLanguageChange = useCallback(
@@ -190,21 +210,28 @@ export default function EditorRoom({ matchData, onLeave }) {
 
       console.log("[EditorRoom] submit:", { passCount, total: testCases.length });
 
+      const allPassed = passCount === testCases.length;
+
       setResults({
         type:      "submit",
         passCount,
         total:     testCases.length,
-        allPassed: passCount === testCases.length,
+        allPassed,
         caseResults,
         runtime:   responses[0]?.time   ? `${(responses[0].time * 1000).toFixed(0)}ms`    : "N/A",
         memory:    responses[0]?.memory ? `${(responses[0].memory / 1024).toFixed(1)} MB` : "N/A",
       });
+
+      // Notify backend — triggers ELO update if first correct submission in room
+      const durationSeconds = Math.floor((Date.now() - sessionStart.current) / 1000);
+      socket?.emit("submit_result", { roomId, passed: allPassed, durationSeconds });
+
     } catch (err) {
       setResults({ type: "error", error: "Could not connect to the code execution server." });
     } finally {
       setIsSubmitting(false);
     }
-  }, [code, language, problem]);
+  }, [code, language, problem, socket, roomId]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -250,9 +277,49 @@ export default function EditorRoom({ matchData, onLeave }) {
         </div>
       )}
 
+      {/* ── Match result overlay ── */}
+      {matchResult && (
+        <div className="match-result-overlay" onClick={() => setMatchResult(null)}>
+          <div className={`match-result-card ${matchResult.result}`}>
+            <div className="mr-icon">{matchResult.result === "win" ? "🏆" : "💡"}</div>
+            <h2 className="mr-title">
+              {matchResult.result === "win" ? "You solved it first!" : "Partner solved it first"}
+            </h2>
+            <p className="mr-sub">
+              {matchResult.result === "win"
+                ? "Great work! You won this round."
+                : "Keep practising — you'll get the next one."}
+            </p>
+            {matchResult.eloChange !== null && (
+              <div className={`mr-elo ${matchResult.eloChange >= 0 ? "pos" : "neg"}`}>
+                {matchResult.eloChange >= 0 ? "+" : ""}{matchResult.eloChange} ELO
+                <span className="mr-elo-new">→ {matchResult.newElo}</span>
+              </div>
+            )}
+            <button className="mr-btn" onClick={onLeave}>Find New Match</button>
+            <button className="mr-dismiss" onClick={() => setMatchResult(null)}>Keep Coding</button>
+          </div>
+        </div>
+      )}
+
       {/* ── Top bar ── */}
       <header className="editor-topbar">
-        <span className="editor-logo">CodeMeet</span>
+        <div className="topbar-left">
+          <span className="editor-logo">CodeMeet</span>
+          {user && (
+            <div className="elo-badge-wrap">
+              <div className="elo-badge" title="Your ELO rating">
+                <span className="elo-icon">⚡</span>
+                <span className="elo-value">{eloDisplay}</span>
+              </div>
+              {eloAnim && (
+                <span className={`elo-anim ${eloAnim.change >= 0 ? "elo-up" : "elo-down"}`}>
+                  {eloAnim.change >= 0 ? "+" : ""}{eloAnim.change}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="topbar-center">
           <div className="match-pill">
@@ -260,7 +327,6 @@ export default function EditorRoom({ matchData, onLeave }) {
             Matched · Room {roomId?.slice(0, 8)}
           </div>
         </div>
-
         <div className="topbar-right">
           <select
             className="lang-select"

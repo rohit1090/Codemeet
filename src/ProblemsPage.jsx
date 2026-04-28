@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { getProblems } from "./api/problems";
+import { useAuth } from "./context/AuthContext";
 import "./ProblemsPage.css";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";
 
 const DIFF_ORDER = { Easy: 0, Medium: 1, Hard: 2 };
 
 export default function ProblemsPage({ onFindMatch, onBack }) {
+  const { user, logout } = useAuth();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
@@ -32,6 +36,17 @@ export default function ProblemsPage({ onFindMatch, onBack }) {
         <div className="land-nav-links">
           <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>Home</a>
           <a href="#" className="nav-active">Problems</a>
+          {user ? (
+            <div className="nav-user">
+              {user.avatar_url && (
+                <img src={user.avatar_url} alt="" className="nav-avatar" referrerPolicy="no-referrer" />
+              )}
+              <span className="nav-username">{user.display_name}</span>
+              <button className="nav-btn-ghost" onClick={logout}>Log out</button>
+            </div>
+          ) : (
+            <a href={`${BACKEND_URL}/auth/google`} className="nav-btn-ghost nav-login-btn">Log in with Google</a>
+          )}
           <button className="nav-btn-solid" onClick={onFindMatch}>Start Coding</button>
         </div>
       </nav>

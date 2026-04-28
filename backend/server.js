@@ -1,13 +1,17 @@
 require("dotenv").config();
 
-const express    = require("express");
-const http       = require("http");
-const { Server } = require("socket.io");
-const cors       = require("cors");
+const express         = require("express");
+const http            = require("http");
+const { Server }      = require("socket.io");
+const cors            = require("cors");
+const session         = require("express-session");
+const passport        = require("passport");
 const { createClient } = require("redis");
-const { Pool }   = require("pg");
+const { Pool }        = require("pg");
 
 const problemsRouter   = require("./routes/problems");
+const authRouter       = require("./routes/auth");
+const setupPassport    = require("./config/passport");
 const setupMatchmaking = require("./socket/matchmaking");
 const setupRoom        = require("./socket/room");
 
@@ -37,6 +41,20 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// ── Sessions (needed for passport OAuth state dance) ──────────────────────────
+app.use(session({
+  secret:            process.env.SESSION_SECRET || "dev-session-secret",
+  resave:            false,
+  saveUninitialized: false,
+  cookie: {
+    secure:   process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge:   10 * 60 * 1000, // 10 min — only used during OAuth redirect
+  },
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 const io = new Server(server, {
@@ -70,6 +88,7 @@ const pg = new Pool({
 
 // ── REST routes ───────────────────────────────────────────────────────────────
 app.use("/api/problems", problemsRouter(pg));
+app.use("/auth", authRouter);
 
 // Health check — Railway polls this to confirm the service is up
 app.get("/health", (_req, res) => {
@@ -106,6 +125,7 @@ setInterval(async () => {
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function start() {
   await redis.connect();
+  setupPassport(pg);
   console.log("[Redis] Connected");
 
   const client = await pg.connect();

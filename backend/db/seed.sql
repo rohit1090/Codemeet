@@ -282,3 +282,163 @@ VALUES (
     "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nint romanToInt(string s) {\n    return 0;\n}\n\nint main() {\n    string s; cin >> s;\n    cout << romanToInt(s) << endl;\n}"
   }'::jsonb
 );
+
+
+-- ── 11. Longest Substring Without Repeating Characters ──────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  'Longest Substring Without Repeating Characters',
+  'Medium',
+  'Given a string s, find the length of the longest substring without repeating characters.',
+  '[
+    {"input": "s = \"abcabcbb\"", "output": "3", "explanation": "The answer is \"abc\", with the length of 3."},
+    {"input": "s = \"bbbbb\"",    "output": "1", "explanation": "The answer is \"b\", with the length of 1."},
+    {"input": "s = \"pwwkew\"",   "output": "3", "explanation": "The answer is \"wke\", with the length of 3."}
+  ]'::jsonb,
+  '["0 <= s.length <= 5 * 10^4", "s consists of English letters, digits, symbols and spaces."]'::jsonb,
+  '[
+    {"input": "abcabcbb", "output": "3"},
+    {"input": "bbbbb",    "output": "1"},
+    {"input": "pwwkew",   "output": "3"},
+    {"input": "abcdef",   "output": "6"},
+    {"input": "a",        "output": "1"}
+  ]'::jsonb,
+  '{
+    "python":     "def lengthOfLongestSubstring(s):\n    pass\n\ns = input().strip()\nprint(lengthOfLongestSubstring(s))",
+    "javascript": "function lengthOfLongestSubstring(s) {\n    \n}\n\nconst s = require(\"fs\").readFileSync(0, \"utf8\").trim();\nconsole.log(lengthOfLongestSubstring(s));",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static int lengthOfLongestSubstring(String s) {\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(lengthOfLongestSubstring(sc.nextLine().trim()));\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nint lengthOfLongestSubstring(string s) {\n    return 0;\n}\n\nint main() {\n    string s; cin >> s;\n    cout << lengthOfLongestSubstring(s) << endl;\n}"
+  }'::jsonb
+);
+
+
+-- ── 12. 3Sum ─────────────────────────────────────────────────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  '3Sum',
+  'Medium',
+  'Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, j != k, and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets. Output each triplet on a new line, numbers space-separated, triplets sorted.',
+  '[
+    {"input": "nums = [-1,0,1,2,-1,-4]", "output": "-1 -1 2\n-1 0 1", "explanation": "The distinct triplets are [-1,-1,2] and [-1,0,1]."},
+    {"input": "nums = [0,1,1]",          "output": "",                 "explanation": "No triplets sum to zero."},
+    {"input": "nums = [0,0,0]",          "output": "0 0 0"}
+  ]'::jsonb,
+  '["3 <= nums.length <= 3000", "-10^5 <= nums[i] <= 10^5"]'::jsonb,
+  '[
+    {"input": "-1 0 1 2 -1 -4", "output": "-1 -1 2\n-1 0 1"},
+    {"input": "0 1 1",          "output": ""},
+    {"input": "0 0 0",          "output": "0 0 0"}
+  ]'::jsonb,
+  '{
+    "python":     "def threeSum(nums):\n    pass\n\nnums = list(map(int, input().split()))\nresult = threeSum(nums)\nfor t in result:\n    print(*t)",
+    "javascript": "function threeSum(nums) {\n    \n}\n\nconst nums = require(\"fs\").readFileSync(0, \"utf8\").trim().split(\" \").map(Number);\nconst result = threeSum(nums);\nresult.forEach(t => console.log(t.join(\" \")));",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static List<List<Integer>> threeSum(int[] nums) {\n        return new ArrayList<>();\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int[] nums = Arrays.stream(sc.nextLine().split(\" \")).mapToInt(Integer::parseInt).toArray();\n        List<List<Integer>> r = threeSum(nums);\n        for (List<Integer> t : r) {\n            System.out.println(t.get(0) + \" \" + t.get(1) + \" \" + t.get(2));\n        }\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nvector<vector<int>> threeSum(vector<int>& nums) {\n    return {};\n}\n\nint main() {\n    string line; getline(cin, line);\n    istringstream iss(line); vector<int> nums; int n;\n    while (iss >> n) nums.push_back(n);\n    auto r = threeSum(nums);\n    for (auto& t : r) cout << t[0] << \" \" << t[1] << \" \" << t[2] << \"\\n\";\n}"
+  }'::jsonb
+);
+
+
+-- ── 13. Number of Islands ────────────────────────────────────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  'Number of Islands',
+  'Medium',
+  'Given an m x n 2D binary grid which represents a map of ''1''s (land) and ''0''s (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. Input: first line is rows and cols, then rows lines of the grid.',
+  '[
+    {"input": "4 5\n11110\n11010\n11000\n00000", "output": "1"},
+    {"input": "4 5\n11000\n11000\n00100\n00011", "output": "3"}
+  ]'::jsonb,
+  '["m == grid.length", "n == grid[i].length", "1 <= m, n <= 300", "grid[i][j] is ''0'' or ''1''."]'::jsonb,
+  '[
+    {"input": "4 5\n11110\n11010\n11000\n00000", "output": "1"},
+    {"input": "4 5\n11000\n11000\n00100\n00011", "output": "3"},
+    {"input": "1 1\n1",                          "output": "1"},
+    {"input": "1 1\n0",                          "output": "0"}
+  ]'::jsonb,
+  '{
+    "python":     "def numIslands(grid):\n    pass\n\nimport sys\nlines = sys.stdin.read().split()\nidx = 0\nrows, cols = int(lines[idx]), int(lines[idx+1]); idx+=2\ngrid = []\nfor _ in range(rows):\n    grid.append(list(lines[idx])); idx+=1\nprint(numIslands(grid))",
+    "javascript": "function numIslands(grid) {\n    \n}\n\nconst lines = require(\"fs\").readFileSync(0,\"utf8\").trim().split(\"\\n\");\nconst [rows,cols] = lines[0].split(\" \").map(Number);\nconst grid = lines.slice(1).map(l=>l.trim().split(\"\"));\nconsole.log(numIslands(grid));",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static int numIslands(char[][] grid) {\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int rows = sc.nextInt(), cols = sc.nextInt();\n        char[][] grid = new char[rows][cols];\n        for (int i = 0; i < rows; i++) grid[i] = sc.next().toCharArray();\n        System.out.println(numIslands(grid));\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nint numIslands(vector<vector<char>>& grid) {\n    return 0;\n}\n\nint main() {\n    int rows, cols; cin >> rows >> cols;\n    vector<vector<char>> grid(rows, vector<char>(cols));\n    for (int i = 0; i < rows; i++) {\n        string s; cin >> s;\n        for (int j = 0; j < cols; j++) grid[i][j] = s[j];\n    }\n    cout << numIslands(grid) << endl;\n}"
+  }'::jsonb
+);
+
+
+-- ── 14. Median of Two Sorted Arrays ─────────────────────────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  'Median of Two Sorted Arrays',
+  'Hard',
+  'Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays. The overall run time complexity should be O(log(m+n)). Input: two lines, each with space-separated integers representing the arrays.',
+  '[
+    {"input": "1 3\n2",   "output": "2.00000", "explanation": "merged array = [1,2,3], and median is 2."},
+    {"input": "1 2\n3 4", "output": "2.50000", "explanation": "merged array = [1,2,3,4], and median is (2+3)/2 = 2.5."}
+  ]'::jsonb,
+  '["nums1.length == m", "nums2.length == n", "0 <= m <= 1000", "0 <= n <= 1000", "1 <= m + n <= 2000", "-10^6 <= nums1[i], nums2[i] <= 10^6"]'::jsonb,
+  '[
+    {"input": "1 3\n2",     "output": "2.00000"},
+    {"input": "1 2\n3 4",   "output": "2.50000"},
+    {"input": "0 0\n0 0",   "output": "0.00000"},
+    {"input": "1\n",        "output": "1.00000"},
+    {"input": "2 3 4\n1 5", "output": "3.00000"}
+  ]'::jsonb,
+  '{
+    "python":     "def findMedianSortedArrays(nums1, nums2):\n    pass\n\nimport sys\nlines = sys.stdin.read().split(\"\\n\")\nnums1 = list(map(int, lines[0].split())) if lines[0].strip() else []\nnums2 = list(map(int, lines[1].split())) if len(lines) > 1 and lines[1].strip() else []\nprint(f\"{findMedianSortedArrays(nums1, nums2):.5f}\")",
+    "javascript": "function findMedianSortedArrays(nums1, nums2) {\n    \n}\n\nconst lines = require(\"fs\").readFileSync(0,\"utf8\").trim().split(\"\\n\");\nconst nums1 = lines[0].trim() ? lines[0].trim().split(\" \").map(Number) : [];\nconst nums2 = lines[1] && lines[1].trim() ? lines[1].trim().split(\" \").map(Number) : [];\nconsole.log(findMedianSortedArrays(nums1,nums2).toFixed(5));",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        return 0.0;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new java.io.InputStreamReader(System.in));\n        String l1 = br.readLine(); String l2 = br.readLine();\n        int[] n1 = l1 != null && !l1.trim().isEmpty() ? Arrays.stream(l1.trim().split(\" \")).mapToInt(Integer::parseInt).toArray() : new int[0];\n        int[] n2 = l2 != null && !l2.trim().isEmpty() ? Arrays.stream(l2.trim().split(\" \")).mapToInt(Integer::parseInt).toArray() : new int[0];\n        System.out.printf(\"%.5f%n\", findMedianSortedArrays(n1, n2));\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\ndouble findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {\n    return 0.0;\n}\n\nint main() {\n    string l1, l2; getline(cin, l1); getline(cin, l2);\n    auto parse = [](string& s) { vector<int> v; istringstream iss(s); int n; while(iss>>n) v.push_back(n); return v; };\n    vector<int> n1 = parse(l1), n2 = parse(l2);\n    cout << fixed << setprecision(5) << findMedianSortedArrays(n1, n2) << endl;\n}"
+  }'::jsonb
+);
+
+
+-- ── 15. Trapping Rain Water ──────────────────────────────────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  'Trapping Rain Water',
+  'Hard',
+  'Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.',
+  '[
+    {"input": "height = [0,1,0,2,1,0,1,3,2,1,2,1]", "output": "6", "explanation": "The elevation map traps 6 units of rain water."},
+    {"input": "height = [4,2,0,3,2,5]",              "output": "9"}
+  ]'::jsonb,
+  '["n == height.length", "1 <= n <= 2 * 10^4", "0 <= height[i] <= 10^5"]'::jsonb,
+  '[
+    {"input": "0 1 0 2 1 0 1 3 2 1 2 1", "output": "6"},
+    {"input": "4 2 0 3 2 5",             "output": "9"},
+    {"input": "1 0 1",                   "output": "1"},
+    {"input": "3 0 2 0 4",               "output": "7"}
+  ]'::jsonb,
+  '{
+    "python":     "def trap(height):\n    pass\n\nheight = list(map(int, input().split()))\nprint(trap(height))",
+    "javascript": "function trap(height) {\n    \n}\n\nconst height = require(\"fs\").readFileSync(0,\"utf8\").trim().split(\" \").map(Number);\nconsole.log(trap(height));",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static int trap(int[] height) {\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int[] h = Arrays.stream(sc.nextLine().split(\" \")).mapToInt(Integer::parseInt).toArray();\n        System.out.println(trap(h));\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nint trap(vector<int>& height) {\n    return 0;\n}\n\nint main() {\n    string line; getline(cin, line);\n    istringstream iss(line); vector<int> h; int n;\n    while (iss >> n) h.push_back(n);\n    cout << trap(h) << endl;\n}"
+  }'::jsonb
+);
+
+
+-- ── 16. Word Break ───────────────────────────────────────────────────────────
+INSERT INTO problems (title, difficulty, description, examples, constraints, test_cases, starter_code)
+VALUES (
+  'Word Break',
+  'Hard',
+  'Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words. Input: first line is the string s, second line is space-separated words in the dictionary.',
+  '[
+    {"input": "leetcode\nleet code",    "output": "true",  "explanation": "Return true because ''leetcode'' can be segmented as ''leet code''."},
+    {"input": "applepenapple\napple pen","output": "true",  "explanation": "Return true because it can be segmented as ''apple pen apple''."},
+    {"input": "catsandog\ncats dog sand and cat","output": "false"}
+  ]'::jsonb,
+  '["1 <= s.length <= 300", "1 <= wordDict.length <= 1000", "1 <= wordDict[i].length <= 20", "s and wordDict[i] consist of only lowercase English letters.", "All the strings of wordDict are unique."]'::jsonb,
+  '[
+    {"input": "leetcode\nleet code",             "output": "true"},
+    {"input": "applepenapple\napple pen",         "output": "true"},
+    {"input": "catsandog\ncats dog sand and cat", "output": "false"},
+    {"input": "cars\ncar ca rs",                  "output": "true"}
+  ]'::jsonb,
+  '{
+    "python":     "def wordBreak(s, wordDict):\n    pass\n\nimport sys\nlines = sys.stdin.read().split(\"\\n\")\ns = lines[0].strip()\nwordDict = lines[1].strip().split() if len(lines) > 1 else []\nprint(str(wordBreak(s, wordDict)).lower())",
+    "javascript": "function wordBreak(s, wordDict) {\n    \n}\n\nconst lines = require(\"fs\").readFileSync(0,\"utf8\").trim().split(\"\\n\");\nconst s = lines[0].trim();\nconst wordDict = lines[1] ? lines[1].trim().split(\" \") : [];\nconsole.log(String(wordBreak(s, wordDict)).toLowerCase());",
+    "java":       "import java.util.*;\n\npublic class Main {\n    public static boolean wordBreak(String s, List<String> wordDict) {\n        return false;\n    }\n\n    public static void main(String[] args) throws Exception {\n        BufferedReader br = new BufferedReader(new java.io.InputStreamReader(System.in));\n        String s = br.readLine().trim();\n        String[] words = br.readLine().trim().split(\" \");\n        System.out.println(wordBreak(s, Arrays.asList(words)));\n    }\n}",
+    "cpp":        "#include <bits/stdc++.h>\nusing namespace std;\n\nbool wordBreak(string s, vector<string>& wordDict) {\n    return false;\n}\n\nint main() {\n    string s, line;\n    getline(cin, s);\n    getline(cin, line);\n    istringstream iss(line); vector<string> dict; string w;\n    while (iss >> w) dict.push_back(w);\n    cout << (wordBreak(s, dict) ? \"true\" : \"false\") << endl;\n}"
+  }'::jsonb
+);

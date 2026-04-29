@@ -65,19 +65,24 @@ module.exports = function setupMatchmaking(socket, io, redis, pg) {
         // ── Pair the two users ─────────────────────────────────────────────────
         const roomId = uuidv4();
 
-        // Pick a problem matching the chosen difficulty
-        const { rows } = diff === "random"
+        // Pick a problem matching the chosen difficulty; fall back to any random problem
+        let { rows } = diff === "random"
           ? await pg.query("SELECT * FROM problems ORDER BY RANDOM() LIMIT 1")
           : await pg.query(
               "SELECT * FROM problems WHERE LOWER(difficulty) = LOWER($1) ORDER BY RANDOM() LIMIT 1",
               [diff]
             );
 
+        if (!rows.length && diff !== "random") {
+          console.warn(`[Matchmaking] No ${diff} problems found — falling back to random`);
+          ({ rows } = await pg.query("SELECT * FROM problems ORDER BY RANDOM() LIMIT 1"));
+        }
+
         if (!rows.length) {
-          // No problems for this difficulty — fail gracefully, restore partner
-          console.error(`[Matchmaking] No problems found for difficulty: ${diff}`);
+          // No problems at all — fail gracefully, restore partner
+          console.error("[Matchmaking] No problems in DB at all");
           await redis.rPush(queueKey, waitingId);
-          socket.emit("match_error", { message: `No problems available for ${diff} difficulty.` });
+          socket.emit("match_error", { message: "No problems available. Please try again later." });
           return;
         }
 

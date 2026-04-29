@@ -36,8 +36,14 @@ function fromBase64(b64) {
 }
 
 export default function EditorRoom({ matchData, onLeave, onFindNewMatch, onLeaderboard }) {
-  const findNewMatch = onFindNewMatch || onLeave;
   const { roomId, problem, socket } = matchData;
+
+  // Pass the current problem's difficulty so the rematch skips selection
+  const findNewMatch = () => {
+    const diff = matchData?.difficulty || problem?.difficulty?.toLowerCase() || null;
+    if (onFindNewMatch) onFindNewMatch(diff);
+    else onLeave();
+  };
   const { user, updateElo } = useAuth();
 
   const getStarterCode = useCallback(

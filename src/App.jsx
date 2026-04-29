@@ -57,7 +57,6 @@ export default function App() {
   function handleMatchFound(data) {
     socketRef.current = data.socket;
     setMatchData(data);
-    if (data.difficulty) setRematchDifficulty(data.difficulty);
     setScreen("editor");
 
     // Count this match for guest users
@@ -85,22 +84,15 @@ export default function App() {
     }
   }
 
-  // Used by the partner-left / match-result overlays so the user skips landing
-  // and goes straight into a new matchmaking queue.
-  function handleFindNewMatch() {
-    // Capture difficulty BEFORE clearing matchData — try multiple sources
-    const diff =
-      rematchDifficulty ||
-      matchData?.difficulty ||
-      matchData?.problem?.difficulty?.toLowerCase() ||
-      null;
-
+  // Called by EditorRoom overlays — receives difficulty directly so there's no
+  // stale-closure risk from reading App state inside this function.
+  function handleFindNewMatch(difficulty) {
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
     setMatchData(null);
-    setRematchDifficulty(diff); // keep it alive for WaitingRoom
+    setRematchDifficulty(difficulty || null);
 
     if (!user && getGuestMatches() >= GUEST_MATCH_LIMIT) {
       setShowLoginPrompt(true);

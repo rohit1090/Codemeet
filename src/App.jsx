@@ -85,6 +85,23 @@ export default function App() {
     }
   }
 
+  // Used by the partner-left / match-result overlays so the user skips landing
+  // and goes straight into a new matchmaking queue.
+  function handleFindNewMatch() {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    setMatchData(null);
+
+    if (!user && getGuestMatches() >= GUEST_MATCH_LIMIT) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    setScreen("waiting");
+  }
+
   function goToLeaderboard() {
     prevScreen.current = screen;
     setScreen("leaderboard");
@@ -126,6 +143,7 @@ export default function App() {
         <EditorRoom
           matchData={matchData}
           onLeave={handleLeave}
+          onFindNewMatch={handleFindNewMatch}
           onLeaderboard={goToLeaderboard}
         />
       )}

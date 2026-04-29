@@ -35,7 +35,8 @@ function fromBase64(b64) {
   return decodeURIComponent(escape(atob(b64)));
 }
 
-export default function EditorRoom({ matchData, onLeave, onLeaderboard }) {
+export default function EditorRoom({ matchData, onLeave, onFindNewMatch, onLeaderboard }) {
+  const findNewMatch = onFindNewMatch || onLeave;
   const { roomId, problem, socket } = matchData;
   const { user, updateElo } = useAuth();
 
@@ -262,7 +263,7 @@ export default function EditorRoom({ matchData, onLeave, onLeaderboard }) {
               Your coding partner has disconnected. Find a new match to keep practising.
             </p>
             <button
-              onClick={onLeave}
+              onClick={findNewMatch}
               style={{
                 background: "#63b374", color: "#fff",
                 border: "none", borderRadius: "8px",
@@ -296,7 +297,7 @@ export default function EditorRoom({ matchData, onLeave, onLeaderboard }) {
                 <span className="mr-elo-new">→ {matchResult.newElo}</span>
               </div>
             )}
-            <button className="mr-btn" onClick={onLeave}>Find New Match</button>
+            <button className="mr-btn" onClick={findNewMatch}>Find New Match</button>
             {onLeaderboard && (
               <button className="mr-btn mr-btn-secondary" onClick={onLeaderboard}>
                 View Leaderboard

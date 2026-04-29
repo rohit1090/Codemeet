@@ -24,6 +24,7 @@ export default function App() {
   const [screen, setScreen]                   = useState("landing");
   const [matchData, setMatchData]             = useState(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [rematchDifficulty, setRematchDifficulty] = useState(null);
   const prevScreen = useRef("landing"); // so leaderboard can go back to right place
   const socketRef = useRef(null);
   const { login, user } = useAuth();
@@ -41,24 +42,22 @@ export default function App() {
   }, [login]);
 
   function handleFindMatch() {
-    // Logged-in users always allowed
+    setRematchDifficulty(null); // show difficulty selection screen normally
     if (user) {
       setScreen("waiting");
       return;
     }
-
-    // Guest: check usage limit
     if (getGuestMatches() >= GUEST_MATCH_LIMIT) {
       setShowLoginPrompt(true);
       return;
     }
-
     setScreen("waiting");
   }
 
   function handleMatchFound(data) {
     socketRef.current = data.socket;
     setMatchData(data);
+    if (data.difficulty) setRematchDifficulty(data.difficulty);
     setScreen("editor");
 
     // Count this match for guest users
@@ -77,6 +76,7 @@ export default function App() {
       socketRef.current = null;
     }
     setMatchData(null);
+    setRematchDifficulty(null);
     setScreen("landing");
 
     // Show login prompt immediately after the session ends if limit reached
@@ -136,6 +136,7 @@ export default function App() {
         <WaitingRoom
           onMatchFound={handleMatchFound}
           onCancel={handleLeave}
+          initialDifficulty={rematchDifficulty}
         />
       )}
 

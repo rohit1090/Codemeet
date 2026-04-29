@@ -36,13 +36,15 @@ const DIFFICULTIES = [
   },
 ];
 
-export default function WaitingRoom({ onMatchFound, onCancel }) {
+export default function WaitingRoom({ onMatchFound, onCancel, initialDifficulty }) {
   const { getToken } = useAuth();
-  const socketRef  = useRef(null);
-  const matchedRef = useRef(false);
+  const socketRef    = useRef(null);
+  const matchedRef   = useRef(false);
+  // Keep a ref so the match_found closure always sees the current value
+  const selectedDiffRef = useRef(initialDifficulty || null);
 
-  const [phase,        setPhase]        = useState("select"); // "select" | "waiting"
-  const [selectedDiff, setSelectedDiff] = useState(null);
+  const [phase,        setPhase]        = useState(initialDifficulty ? "waiting" : "select");
+  const [selectedDiff, setSelectedDiff] = useState(initialDifficulty || null);
   const [queueCounts,  setQueueCounts]  = useState({ easy: 0, medium: 0, hard: 0, random: 0 });
   const [waitTime,     setWaitTime]     = useState(0);
   const [error,        setError]        = useState(null);
@@ -67,6 +69,11 @@ export default function WaitingRoom({ onMatchFound, onCancel }) {
     socket.on("connect", () => {
       console.log("[WaitingRoom] Connected:", socket.id);
       setError(null);
+      // Rematch flow: skip selection screen and queue immediately
+      if (initialDifficulty) {
+        socket.emit("find_match", { difficulty: initialDifficulty, eloRange: 300 });
+        console.log("[WaitingRoom] auto find_match (rematch):", initialDifficulty);
+      }
     });
 
     socket.on("connect_error", (err) => {
@@ -77,7 +84,7 @@ export default function WaitingRoom({ onMatchFound, onCancel }) {
     socket.on("match_found", (data) => {
       console.log("[WaitingRoom] match_found:", data);
       matchedRef.current = true;
-      onMatchFound({ ...data, socket });
+      onMatchFound({ ...data, socket, difficulty: selectedDiffRef.current });
     });
 
     socket.on("queue_update", (counts) => {
@@ -96,7 +103,7 @@ export default function WaitingRoom({ onMatchFound, onCancel }) {
         socket.disconnect();
       }
     };
-  }, [retryKey, onMatchFound, getToken]);
+  }, [retryKey, onMatchFound, getToken, initialDifficulty]);
 
   // ── Wait timer — only runs while in "waiting" phase ─────────────────────────
   useEffect(() => {
@@ -107,6 +114,7 @@ export default function WaitingRoom({ onMatchFound, onCancel }) {
   }, [phase]);
 
   function handleSelectDifficulty(diff) {
+    selectedDiffRef.current = diff;
     setSelectedDiff(diff);
     setPhase("waiting");
     socketRef.current?.emit("find_match", { difficulty: diff, eloRange: 300 });

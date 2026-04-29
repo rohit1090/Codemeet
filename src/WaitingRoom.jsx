@@ -54,8 +54,10 @@ export default function WaitingRoom({ onMatchFound, onCancel, initialDifficulty 
   useEffect(() => {
     matchedRef.current = false;
     setError(null);
-    setPhase("select");
-    setSelectedDiff(null);
+    // Preserve initialDifficulty for rematch flow; only reset when retrying after error
+    setPhase(initialDifficulty ? "waiting" : "select");
+    setSelectedDiff(initialDifficulty || null);
+    selectedDiffRef.current = initialDifficulty || null;
 
     const socket = io(BACKEND_URL, {
       transports: ["websocket", "polling"],
